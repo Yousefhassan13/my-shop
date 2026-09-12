@@ -1,5 +1,5 @@
 import './App.css';
-import { products } from './products';
+import { products as initialProducts } from './products';
 import ProductCard from './ProductCard';
 import { useState, useEffect, use } from 'react';
 import Cart from './Cart';
@@ -10,9 +10,18 @@ import ProductDetail from './ProductDetail';
 import { Route, Routes } from 'react-router-dom';
 
 // Matrial UI
-import { TextField } from '@mui/material';
-import { Button, Stack } from '@mui/material';
-import { Grid } from '@mui/material';
+import {
+  Container,
+  Paper,
+  Grid,
+  TextField,
+  Stack,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
 
 function App() {
   // state
@@ -22,10 +31,26 @@ function App() {
   });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState(initialProducts);
+  const [selectOrder, setSelectOrder] = useState('');
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
+
+  useEffect(() => {
+    if (selectOrder === 'lowToHigh') {
+      const sortedProducts = [...products].sort((a, b) => {
+        return a.price - b.price;
+      });
+      setProducts(sortedProducts);
+    } else if (selectOrder === 'highToLow') {
+      const sortedProducts = [...products].sort((a, b) => {
+        return b.price - a.price;
+      });
+      setProducts(sortedProducts);
+    }
+  }, [selectOrder]);
 
   // Add Item to Cart
   function addToCart(product) {
@@ -90,6 +115,17 @@ function App() {
     //   return false;
   });
 
+  // Add Reviews
+  function addReview(productId, review) {
+    const updatedProducts = products.map((product) => {
+      if (product.id === productId) {
+        return { ...product, reviews: [...product.reviews, review] };
+      }
+      return product;
+    });
+    setProducts(updatedProducts);
+  }
+
   return (
     <>
       <Header cartItemCount={cart.length} />
@@ -98,47 +134,111 @@ function App() {
           path="/"
           element={
             <>
-              <TextField
-                label="Search..."
-                variant="outlined"
-                fullWidth
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ margin: 2, width: 'calc(100% - 32px)' }}
-              />
-              <Stack direction="row" spacing={1} sx={{ margin: 2 }}>
-                <Button
-                  variant={
-                    selectedCategory === 'all' ? 'contained' : 'outlined'
-                  }
-                  onClick={() => setSelectedCategory('all')}
+              <Container maxWidth="xl" sx={{ py: 4 }}>
+                {/* Search & Filters */}
+                <Paper
+                  elevation={2}
+                  sx={{
+                    p: 3,
+                    mb: 4,
+                    borderRadius: 3,
+                  }}
                 >
-                  All
-                </Button>
-                <Button
-                  variant={
-                    selectedCategory === 'shoes' ? 'contained' : 'outlined'
-                  }
-                  onClick={() => setSelectedCategory('shoes')}
-                >
-                  Shoes
-                </Button>
-                <Button
-                  variant={
-                    selectedCategory === 'clothes' ? 'contained' : 'outlined'
-                  }
-                  onClick={() => setSelectedCategory('clothes')}
-                >
-                  clothes
-                </Button>
-              </Stack>
-              <Grid container spacing={2} sx={{ margin: 4 }}>
-                {filteredProducts.map((product) => (
-                  <Grid key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                    <ProductCard product={product} onAddToCart={addToCart} />
+                  <Grid container spacing={2} alignItems="center">
+                    {/* Search */}
+                    <Grid size={{ xs: 12, md: 5 }}>
+                      <TextField
+                        label="Search Products"
+                        variant="outlined"
+                        fullWidth
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </Grid>
+
+                    {/* Sort */}
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                      <FormControl fullWidth>
+                        <InputLabel>Sort By</InputLabel>
+
+                        <Select
+                          value={selectOrder}
+                          label="Sort By"
+                          onChange={(e) => setSelectOrder(e.target.value)}
+                        >
+                          <MenuItem value="lowToHigh">
+                            Price: Low to High
+                          </MenuItem>
+
+                          <MenuItem value="highToLow">
+                            Price: High to Low
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    {/* Categories */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        flexWrap="wrap"
+                        useFlexGap
+                      >
+                        <Button
+                          variant={
+                            selectedCategory === 'all'
+                              ? 'contained'
+                              : 'outlined'
+                          }
+                          onClick={() => setSelectedCategory('all')}
+                        >
+                          All
+                        </Button>
+
+                        <Button
+                          variant={
+                            selectedCategory === 'shoes'
+                              ? 'contained'
+                              : 'outlined'
+                          }
+                          onClick={() => setSelectedCategory('shoes')}
+                        >
+                          Shoes
+                        </Button>
+
+                        <Button
+                          variant={
+                            selectedCategory === 'clothes'
+                              ? 'contained'
+                              : 'outlined'
+                          }
+                          onClick={() => setSelectedCategory('clothes')}
+                        >
+                          Clothes
+                        </Button>
+                      </Stack>
+                    </Grid>
                   </Grid>
-                ))}
-              </Grid>
+                </Paper>
+
+                {/* Products */}
+                <Grid container spacing={3}>
+                  {filteredProducts.map((product) => (
+                    <Grid
+                      key={product.id}
+                      size={{
+                        xs: 12,
+                        sm: 6,
+                        md: 4,
+                        lg: 3,
+                      }}
+                    >
+                      <ProductCard product={product} onAddToCart={addToCart} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Container>
             </>
           }
         />
@@ -146,7 +246,11 @@ function App() {
         <Route
           path="/product/:id"
           element={
-            <ProductDetail products={products} onAddToCart={addToCart} />
+            <ProductDetail
+              products={products}
+              onAddToCart={addToCart}
+              onAddReview={addReview}
+            />
           }
         />
         <Route
