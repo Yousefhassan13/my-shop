@@ -5,7 +5,8 @@ import { useState, useEffect, use } from 'react';
 import Cart from './Cart';
 import Header from './Header';
 import ProductDetail from './ProductDetail';
-
+import Signup from './Signup';
+import Login from './Login';
 // React Router DOM
 import { Route, Routes } from 'react-router-dom';
 
@@ -33,6 +34,13 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [products, setProducts] = useState(initialProducts);
   const [selectOrder, setSelectOrder] = useState('');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser = localStorage.getItem('currentUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  useEffect(() => {
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  }, [currentUser]);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -125,10 +133,21 @@ function App() {
     });
     setProducts(updatedProducts);
   }
-
+  // login user
+  function loginUser(user) {
+    setCurrentUser(user);
+  }
+  // logout user
+  function logout() {
+    setCurrentUser(null);
+  }
   return (
     <>
-      <Header cartItemCount={cart.length} />
+      <Header
+        cartItemCount={cart.length}
+        currentUser={currentUser}
+        onLogout={logout}
+      />
       <Routes>
         <Route
           path="/"
@@ -263,6 +282,8 @@ function App() {
             />
           }
         />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login onLogin={loginUser} />} />
       </Routes>
       {/*cart component */}
     </>
