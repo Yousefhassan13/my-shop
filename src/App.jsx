@@ -1,4 +1,3 @@
-import './App.css';
 import { products as initialProducts } from './products';
 import ProductCard from './ProductCard';
 import { useState, useEffect, use } from 'react';
@@ -7,22 +6,9 @@ import Header from './Header';
 import ProductDetail from './ProductDetail';
 import Signup from './Signup';
 import Login from './Login';
+import Checkout from './Checkout';
 // React Router DOM
 import { Route, Routes } from 'react-router-dom';
-
-// Matrial UI
-import {
-  Container,
-  Paper,
-  Grid,
-  TextField,
-  Stack,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material';
 
 function App() {
   // state
@@ -32,12 +18,18 @@ function App() {
   });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState(() => {
+    const savedProducts = localStorage.getItem('products');
+    return savedProducts ? JSON.parse(savedProducts) : initialProducts;
+  });
   const [selectOrder, setSelectOrder] = useState('');
   const [currentUser, setCurrentUser] = useState(() => {
     const savedUser = localStorage.getItem('currentUser');
     return savedUser ? JSON.parse(savedUser) : null;
   });
+useEffect(() => {
+  localStorage.setItem('products', JSON.stringify(products));
+}, [products]);
   useEffect(() => {
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
   }, [currentUser]);
@@ -115,12 +107,6 @@ function App() {
       .includes(searchTerm.toLowerCase());
 
     return matchesGategory && matchesSearchTerm;
-
-    // return product.category === selectedCategory || selectedCategory === "all";
-    // if (product.category === selectedCategory || selectedCategory === "all") {
-    //   return true;
-    // }
-    //   return false;
   });
 
   // Add Reviews
@@ -141,10 +127,14 @@ function App() {
   function logout() {
     setCurrentUser(null);
   }
+
+  function clearCart() {
+    setCart([]);
+  }
   return (
     <>
       <Header
-        cartItemCount={cart.length}
+        cartItemCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         currentUser={currentUser}
         onLogout={logout}
       />
@@ -153,111 +143,70 @@ function App() {
           path="/"
           element={
             <>
-              <Container maxWidth="xl" sx={{ py: 4 }}>
+              <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Search & Filters */}
-                <Paper
-                  elevation={2}
-                  sx={{
-                    p: 3,
-                    mb: 4,
-                    borderRadius: 3,
-                  }}
-                >
-                  <Grid container spacing={2} alignItems="center">
+                <div className="bg-white shadow-md rounded-xl p-6 mb-8">
+                  <div className="flex flex-wrap gap-4 items-center">
                     {/* Search */}
-                    <Grid size={{ xs: 12, md: 5 }}>
-                      <TextField
-                        label="Search Products"
-                        variant="outlined"
-                        fullWidth
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </Grid>
+
+                    <input
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      type="text"
+                      placeholder="Search Products"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
 
                     {/* Sort */}
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <FormControl fullWidth>
-                        <InputLabel>Sort By</InputLabel>
 
-                        <Select
-                          value={selectOrder}
-                          label="Sort By"
-                          onChange={(e) => setSelectOrder(e.target.value)}
-                        >
-                          <MenuItem value="lowToHigh">
-                            Price: Low to High
-                          </MenuItem>
-
-                          <MenuItem value="highToLow">
-                            Price: High to Low
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
+                    <select
+                      value={selectOrder}
+                      onChange={(e) => setSelectOrder(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Sort By</option>
+                      <option value="lowToHigh">Price: Low to High</option>
+                      <option value="highToLow">Price: High to Low</option>
+                    </select>
 
                     {/* Categories */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        flexWrap="wrap"
-                        useFlexGap
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        className={`px-4 py-2 rounded-lg border transition-colors  ${selectedCategory === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-500 text-blue-500 bg-white'}`}
+                        onClick={() => setSelectedCategory('all')}
                       >
-                        <Button
-                          variant={
-                            selectedCategory === 'all'
-                              ? 'contained'
-                              : 'outlined'
-                          }
-                          onClick={() => setSelectedCategory('all')}
-                        >
-                          All
-                        </Button>
+                        All
+                      </button>
 
-                        <Button
-                          variant={
-                            selectedCategory === 'shoes'
-                              ? 'contained'
-                              : 'outlined'
-                          }
-                          onClick={() => setSelectedCategory('shoes')}
-                        >
-                          Shoes
-                        </Button>
+                      <button
+                        className={`px-4 py-2 rounded-lg border transition-colors  ${selectedCategory === 'shoes' ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-500 text-blue-500 bg-white'}`}
+                        onClick={() => setSelectedCategory('shoes')}
+                      >
+                        Shoes
+                      </button>
 
-                        <Button
-                          variant={
-                            selectedCategory === 'clothes'
-                              ? 'contained'
-                              : 'outlined'
-                          }
-                          onClick={() => setSelectedCategory('clothes')}
-                        >
-                          Clothes
-                        </Button>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Paper>
+                      <button
+                        className={`px-4 py-2 rounded-lg border transition-colors  ${selectedCategory === 'clothes' ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-500 text-blue-500 bg-white'}`}
+                        onClick={() => setSelectedCategory('clothes')}
+                      >
+                        Clothes
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Products */}
-                <Grid container spacing={3}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {filteredProducts.map((product) => (
-                    <Grid
+                    <ProductCard
                       key={product.id}
-                      size={{
-                        xs: 12,
-                        sm: 6,
-                        md: 4,
-                        lg: 3,
-                      }}
-                    >
-                      <ProductCard product={product} onAddToCart={addToCart} />
-                    </Grid>
+                      product={product}
+                      onAddToCart={addToCart}
+                    />
                   ))}
-                </Grid>
-              </Container>
+                </div>
+              </div>
             </>
           }
         />
@@ -284,6 +233,10 @@ function App() {
         />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login onLogin={loginUser} />} />
+        <Route
+          path="/checkout"
+          element={<Checkout cartItems={cart} onClearCart={clearCart} />}
+        />
       </Routes>
       {/*cart component */}
     </>

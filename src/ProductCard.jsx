@@ -1,45 +1,29 @@
-//Matrial UI
-import {
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  Button,
-} from '@mui/material';
 import { Link } from 'react-router-dom';
 
 export default function ProductCard({ product, onAddToCart }) {
   return (
-    <Card sx={{ maxWidth: 250, margin: 2 }}>
-      <Link
-        to={`/product/${product.id}`}
-        style={{ textDecoration: 'none', color: 'inherit' }}
-      >
-        <CardMedia
-          component="img"
-          height="180"
-          image={product.image}
+    <div className="rounded-lg shadow-md overflow-hidden">
+      <Link to={`/product/${product.id}`} className="no-underline">
+        <img
+          src={product.image}
           alt={product.name}
+          className="w-full h-52 object-cover"
         />
-        <CardContent>
-          <Typography variant="h6">{product.name}</Typography>
+        <div className="p-4">
+          <h3 className="text-lg font-semibold">{product.name}</h3>
 
-          <Typography variant="body1" color="text.secondary">
-            {product.price} EGP
-          </Typography>
-        </CardContent>
+          <p className="text-blue-500 font-semibold">{product.price} EGP</p>
+        </div>
       </Link>
-      <Button
-        variant="contained"
-        fullWidth
-        sx={{ marginTop: 1 }}
+      <button
+        className="w-full py-3 rounded-3xl bg-blue-500 text-white hover:bg-blue-700 transition-colors"
         onClick={(e) => {
-          e.stopPropagation(); // Prevent the click from propagating to the Link
+
           onAddToCart(product);
         }}
       >
         Add to Cart
-      </Button>
-    </Card>
+      </button>
+    </div>
   );
 }
