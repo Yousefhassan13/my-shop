@@ -12,7 +12,7 @@ export default function ProductCard({ product, onAddToCart }) {
         <div className="p-4">
           <h3 className="text-lg font-semibold">{product.name}</h3>
 
-          <p className="text-blue-500 font-semibold">{product.price} EGP</p>
+          <p className="text-blue-500 font-semibold">{product.price} $</p>
         </div>
       </Link>
       <button

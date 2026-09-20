@@ -1,15 +1,14 @@
-import { products as initialProducts } from './products';
-import ProductCard from './ProductCard';
+import Home from './pages/Home';
 import { useState, useEffect, use } from 'react';
-import Cart from './Cart';
-import Header from './Header';
-import ProductDetail from './ProductDetail';
-import Signup from './Signup';
-import Login from './Login';
-import Checkout from './Checkout';
+import Cart from './pages/Cart';
+import Header from './components/Header';
+import ProductDetail from './pages/ProductDetail';
+import Signup from './pages/Signup';
+import Login from './pages/Login';
+import Checkout from './pages/Checkout';
 // React Router DOM
 import { Route, Routes } from 'react-router-dom';
-
+import { Navigate } from 'react-router-dom';
 function App() {
   // state
   const [cart, setCart] = useState(() => {
@@ -18,18 +17,53 @@ function App() {
   });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  // state products
   const [products, setProducts] = useState(() => {
     const savedProducts = localStorage.getItem('products');
-    return savedProducts ? JSON.parse(savedProducts) : initialProducts;
+    return savedProducts ? JSON.parse(savedProducts) : [];
   });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectOrder, setSelectOrder] = useState('');
   const [currentUser, setCurrentUser] = useState(() => {
     const savedUser = localStorage.getItem('currentUser');
     return savedUser ? JSON.parse(savedUser) : null;
   });
-useEffect(() => {
-  localStorage.setItem('products', JSON.stringify(products));
-}, [products]);
+  const categories = ['all', ...new Set(products.map((p) => p.category))];
+
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('products');
+    if (savedProducts) {
+      setLoading(false);
+      return;
+    }
+    async function fetchProducts() {
+      try {
+        const response = await fetch('https://dummyjson.com/products');
+        const data = await response.json();
+        const productsWithReviews = data.products.map((product) => ({
+          ...product,
+          id: product.id,
+          name: product.title,
+          price: product.price,
+          image: product.thumbnail,
+          category: product.category,
+          description: product.description,
+          reviews: [],
+        }));
+        setProducts(productsWithReviews);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load products');
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+  useEffect(() => {
+    localStorage.setItem('products', JSON.stringify(products));
+  }, [products]);
   useEffect(() => {
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
   }, [currentUser]);
@@ -55,7 +89,6 @@ useEffect(() => {
   // Add Item to Cart
   function addToCart(product) {
     const existingItem = cart.find((item) => item.id === product.id);
-    console.log('existingItem:', existingItem);
     if (existingItem) {
       const updatedCard = cart.map((item) => {
         if (item.id === product.id) {
@@ -143,70 +176,17 @@ useEffect(() => {
           path="/"
           element={
             <>
-              <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Search & Filters */}
-                <div className="bg-white shadow-md rounded-xl p-6 mb-8">
-                  <div className="flex flex-wrap gap-4 items-center">
-                    {/* Search */}
-
-                    <input
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      type="text"
-                      placeholder="Search Products"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-
-                    {/* Sort */}
-
-                    <select
-                      value={selectOrder}
-                      onChange={(e) => setSelectOrder(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Sort By</option>
-                      <option value="lowToHigh">Price: Low to High</option>
-                      <option value="highToLow">Price: High to Low</option>
-                    </select>
-
-                    {/* Categories */}
-
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        className={`px-4 py-2 rounded-lg border transition-colors  ${selectedCategory === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-500 text-blue-500 bg-white'}`}
-                        onClick={() => setSelectedCategory('all')}
-                      >
-                        All
-                      </button>
-
-                      <button
-                        className={`px-4 py-2 rounded-lg border transition-colors  ${selectedCategory === 'shoes' ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-500 text-blue-500 bg-white'}`}
-                        onClick={() => setSelectedCategory('shoes')}
-                      >
-                        Shoes
-                      </button>
-
-                      <button
-                        className={`px-4 py-2 rounded-lg border transition-colors  ${selectedCategory === 'clothes' ? 'bg-blue-600 text-white border-blue-600' : 'border-blue-500 text-blue-500 bg-white'}`}
-                        onClick={() => setSelectedCategory('clothes')}
-                      >
-                        Clothes
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Products */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {filteredProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onAddToCart={addToCart}
-                    />
-                  ))}
-                </div>
-              </div>
+              <Home
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectOrder={selectOrder}
+                setSelectOrder={setSelectOrder}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                filteredProducts={filteredProducts}
+                onAddToCart={addToCart}
+                categories={categories}
+              />
             </>
           }
         />
@@ -235,7 +215,13 @@ useEffect(() => {
         <Route path="/login" element={<Login onLogin={loginUser} />} />
         <Route
           path="/checkout"
-          element={<Checkout cartItems={cart} onClearCart={clearCart} />}
+          element={
+            currentUser ? (
+              <Checkout cartItems={cart} onClearCart={clearCart} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
       </Routes>
       {/*cart component */}

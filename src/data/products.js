@@ -1,7 +1,7 @@
-import shirt1 from './assets/product-image/f1.jpg';
-import shirt2 from './assets/product-image/f2.jpg';
-import shoes1 from './assets/product-image/f7.jpg';
-import shirt3 from './assets/product-image/f8.jpg';
+import shirt1 from '../assets/product-image/f1.jpg';
+import shirt2 from '../assets/product-image/f2.jpg';
+import shoes1 from '../assets/product-image/f7.jpg';
+import shirt3 from '../assets/product-image/f8.jpg';
 
 export const products = [
   {
