@@ -3,7 +3,44 @@ import shirt2 from '../assets/product-image/f2.jpg';
 import shoes1 from '../assets/product-image/f7.jpg';
 import shirt3 from '../assets/product-image/f8.jpg';
 
-export const products = [
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  reviews: Review[];
+}
+export interface Review {
+  name: string;
+  rating: number;
+  comment: string;
+}
+
+export interface CartItem extends Product {
+  quantity: number;
+}
+
+export interface User {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface ProductResponse {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  thumbnail: string;
+}
+export interface ApiResponse {
+  products: ProductResponse[];
+}
+
+export const products: Product[] = [
   {
     id: 1,
     name: 'Product1',
@@ -31,7 +68,7 @@ export const products = [
     category: 'clothes',
     reviews: [],
   },
-    {
+  {
     id: 4,
     name: 'Product4',
     description: 'This is the description for Product 3.',

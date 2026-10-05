@@ -2,10 +2,17 @@ import { useParams } from 'react-router-dom';
 import { useState } from 'react';
 // Material UI
 import { Rating } from '@mui/material';
+import type { Product, Review } from '../data/products.js';
 
-export default function ProductDetail({ products, onAddToCart, onAddReview }) {
+interface ProductDetailProps {
+  products: Product[];
+  onAddToCart: (product: Product) => void;
+  onAddReview: (productId: Product["id"], review: Review
+) => void;
+}
+export default function ProductDetail({ products, onAddToCart, onAddReview }: ProductDetailProps) {
   const { id } = useParams();
-  const product = products.find((p) => p.id === Number(id));
+  const product = products.find((p:Product) => p.id === Number(id));
   const [error, setError] = useState('');
   // State
   const [newRating, setNewRating] = useState(0);
@@ -21,6 +28,17 @@ export default function ProductDetail({ products, onAddToCart, onAddReview }) {
       </div>
     );
   }
+  function handleSubmitReview() {
+    if (newComment === '') {
+      setError('Please write a comment before submitting');
+      return;
+    }
+    setError('');
+    const review:Review = { name: 'user', rating: newRating, comment: newComment };
+    onAddReview(product!.id , review);
+    setNewRating(0);
+    setNewComment('');
+  }
   const totalRating = product.reviews.reduce((sum, review) => {
     return sum + review.rating;
   }, 0);
@@ -28,17 +46,7 @@ export default function ProductDetail({ products, onAddToCart, onAddReview }) {
   const averageRating =
     product.reviews.length > 0 ? totalRating / product.reviews.length : 0;
 
-  function handleSubmitReview() {
-    if (newComment === '') {
-      setError('Please write a comment before submitting');
-      return;
-    }
-    setError('');
-    const review = { name: 'user', rating: newRating, comment: newComment };
-    onAddReview(product.id, review);
-    setNewRating(0);
-    setNewComment('');
-  }
+    
   return (
     <>
       <div className="max-w-2xl mx-auto px-4 py-8">
@@ -90,10 +98,10 @@ export default function ProductDetail({ products, onAddToCart, onAddReview }) {
           </h2>
           <Rating
             value={newRating}
-            onChange={(e, value) => setNewRating(value)}
+            onChange={(e, value) => setNewRating(value??0)}
           />
           <textarea
-            rows="3"
+            rows={3}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 mt-3 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
             placeholder="Share your thoughts about this product..."
             value={newComment}

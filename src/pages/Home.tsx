@@ -1,5 +1,17 @@
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/ProductCard.js';
+import type { Product } from '../data/products.js';
 
+interface HomeProps {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectOrder: string;
+  setSelectOrder: (order: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
+  filteredProducts: Product[];
+  onAddToCart: (product: Product) => void;
+  categories: string[];
+}
 export default function Home({
   searchTerm,
   setSearchTerm,
@@ -10,7 +22,7 @@ export default function Home({
   filteredProducts,
   onAddToCart,
   categories,
-}) {
+}: HomeProps) {
   return (
     <>
       <div className="max-w-7xl mx-auto px-4 py-8">

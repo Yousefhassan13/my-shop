@@ -1,7 +1,16 @@
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { Link } from 'react-router-dom';
+import type { User } from '../data/products.js';
 
-export default function Header({ cartItemCount, currentUser, onLogout }) {
+interface HeaderProps {
+  cartItemCount: number;
+  currentUser: User | null;
+  onLogout: () => void;
+}
+
+
+
+export default function Header({ cartItemCount, currentUser, onLogout }: HeaderProps) {
   return (
     <div>
       <header className="flex justify-between items-center bg-blue-600 px-5 py-4 ">
@@ -22,7 +31,7 @@ export default function Header({ cartItemCount, currentUser, onLogout }) {
 
           {currentUser ? (
             <div className="flex items-center gap-3 bg-white/10 hover:bg-white/20 transition-colors rounded-full pl-1 pr-4 py-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>
               <span className="text-white text-sm font-medium">

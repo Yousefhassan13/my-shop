@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom';
+import type { Product } from '../data/products.js';
 
-export default function ProductCard({ product, onAddToCart }) {
+interface ProductCardProps {
+  product: Product;
+  onAddToCart: (product: Product) => void;
+}
+
+export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   return (
     <div className="rounded-lg shadow-md overflow-hidden">
       <Link to={`/product/${product.id}`} className="no-underline">

@@ -3,14 +3,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import type { CartItem } from '../data/products.js';
 const checkoutSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   shippingAddress: z.string().min(1, 'Shipping address is required'),
   phoneNumber: z.string().min(1, 'Phone number is required'),
 });
-
-export default function Checkout({ cartItems, onClearCart }) {
+interface CheckoutProps {
+  cartItems: CartItem[];
+  onClearCart: () => void;
+}
+type CheckoutFormData = z.infer<typeof checkoutSchema>;
+export default function Checkout({ cartItems, onClearCart }: CheckoutProps) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [confirmedName, setConfirmedName] = useState('');
 
@@ -18,13 +22,13 @@ export default function Checkout({ cartItems, onClearCart }) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
   });
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  function onSubmit(data) {
+  function onSubmit(data: CheckoutFormData) {
     setConfirmedName(data.fullName);
     onClearCart();
     setOrderConfirmed(true);

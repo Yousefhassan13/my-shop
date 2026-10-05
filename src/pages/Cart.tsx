@@ -1,10 +1,18 @@
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import Checkout from './Checkout';
 import { Link } from 'react-router-dom';
+import type { Product, CartItem } from '../data/products.js';
 
-export default function Cart({ cartItems, onRemove, onUpdateQuantity }) {
+interface CartProps {
+  cartItems: CartItem[];
+  onRemove: (productId: Product['id']) => void;
+  onUpdateQuantity: (productId: Product['id'], amount: number) => void;
+}
+
+
+
+export default function Cart({ cartItems, onRemove, onUpdateQuantity }: CartProps) {
   const total = cartItems.reduce(
     (sum, item) => Math.trunc(sum + item.price * item.quantity),
     0
@@ -24,7 +32,7 @@ export default function Cart({ cartItems, onRemove, onUpdateQuantity }) {
               <img
                 src={item.image}
                 alt={item.name}
-                className="w-20 h-20 object-cover rounded-xl flex-shrink-0"
+                className="w-20 h-20 object-cover rounded-xl shrink-0"
               />
               <div className="flex-1 sm:hidden">
                 <h3 className="font-semibold text-gray-900">{item.name}</h3>

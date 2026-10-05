@@ -3,49 +3,48 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-
-const signupSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+import type { User } from '../data/products.js';
+const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(1, 'Password is required'),
 });
-
-export default function Signup() {
+type LoginFormData = z.infer<typeof loginSchema>;
+interface LoginProps {
+  onLogin: (user: User) => void;
+}
+export default function Login({ onLogin }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(signupSchema),
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
   });
 
-  function onSubmit(data) {
-    localStorage.setItem('user', JSON.stringify(data));
-    navigate('/login');
+  function onSubmit(data: LoginFormData) {
+    const savedUser = localStorage.getItem('user');
+    const user = savedUser ? JSON.parse(savedUser) : null;
+
+    if (user && user.email === data.email && user.password === data.password) {
+      onLogin(user);
+      navigate('/');
+    } else {
+      setError('email', { message: 'Invalid email or password' });
+    }
   }
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-8 max-w-md mx-auto mt-16">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Create account</h1>
-      <p className="text-gray-500 text-sm mb-6">Start shopping in a few seconds</p>
-
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Login</h1>
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-          <input
-            {...register('name')}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
-          {errors.name && (
-            <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
           <input
             type="email"
             {...register('email')}
@@ -57,7 +56,9 @@ export default function Signup() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -73,7 +74,9 @@ export default function Signup() {
             </button>
           </div>
           {errors.password && (
-            <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
@@ -81,13 +84,16 @@ export default function Signup() {
           onClick={handleSubmit(onSubmit)}
           className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors"
         >
-          Sign Up
+          Login
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">
-          Already have an account?{' '}
-          <Link to="/login" className="text-gray-900 font-medium hover:underline">
-            Login
+          Don't have an account?{' '}
+          <Link
+            to="/signup"
+            className="text-gray-900 font-medium hover:underline"
+          >
+            Sign up
           </Link>
         </p>
       </div>
